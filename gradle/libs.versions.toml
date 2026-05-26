@@ -1,0 +1,54 @@
+[versions]
+kotlin                  = "2.2.20"
+compose-multiplatform   = "1.10.3"
+voyager                 = "1.1.0-beta03"
+ktor                    = "3.4.3"
+sqldelight              = "2.1.0"
+koin                    = "4.1.0"
+coil                    = "3.0.4"
+supabase                = "3.1.4"
+lifecycle               = "2.9.0"
+kotlinx-serialization   = "1.8.1"
+kotlinx-coroutines      = "1.10.2"
+agp                     = "8.7.0"
+
+[libraries]
+ktor-client-core              = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp            = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin            = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-content-negotiation      = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-json       = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging           = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+sqldelight-runtime            = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+sqldelight-coroutines         = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-android-driver     = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+sqldelight-native-driver      = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
+koin-core                     = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose                  = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel        = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+voyager-navigator             = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
+voyager-screenmodel           = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
+voyager-transitions           = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
+voyager-tab-navigator         = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
+voyager-koin                  = { module = "cafe.adriel.voyager:voyager-koin", version.ref = "voyager" }
+coil-compose                  = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor             = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+coil-gif                      = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
+supabase-bom                  = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
+supabase-auth                 = { module = "io.github.jan-tennert.supabase:auth-kt" }
+supabase-postgrest            = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
+supabase-storage              = { module = "io.github.jan-tennert.supabase:storage-kt" }
+supabase-functions            = { module = "io.github.jan-tennert.supabase:functions-kt" }
+supabase-compose-auth         = { module = "io.github.jan-tennert.supabase:compose-auth" }
+lifecycle-viewmodel           = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose   = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+kotlinx-serialization-json    = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-coroutines-core       = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+
+[plugins]
+kotlin-multiplatform          = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-multiplatform         = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+compose-compiler              = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization          = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+sqldelight-plugin             = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+android-application           = { id = "com.android.application", version.ref = "agp" }
