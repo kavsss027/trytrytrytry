@@ -1,0 +1,23 @@
+CREATE TABLE ExerciseCache (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    muscle_group TEXT NOT NULL,
+    gif_url TEXT NOT NULL,
+    difficulty TEXT NOT NULL,
+    cached_at INTEGER NOT NULL  -- Unix timestamp
+);
+
+-- Query: get exercises by muscle group
+getByMuscleGroup:
+SELECT * FROM ExerciseCache
+WHERE muscle_group = :muscleGroup;
+
+-- Query: insert or replace
+upsertExercise:
+INSERT OR REPLACE INTO ExerciseCache
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- Query: get all
+getAllExercises:
+SELECT * FROM ExerciseCache;
