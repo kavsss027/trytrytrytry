@@ -417,7 +417,7 @@ object DietTab : Tab {
                                         }
                                     }
                                     
-                                    Divider(color = BackgroundColor)
+                                    HorizontalDivider(color = BackgroundColor)
                                     
                                     meal.foods.forEach { food ->
                                         Row(verticalAlignment = Alignment.CenterVertically) {

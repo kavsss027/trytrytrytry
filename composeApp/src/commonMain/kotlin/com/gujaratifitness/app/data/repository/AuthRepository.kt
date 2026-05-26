@@ -10,19 +10,29 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-class AuthRepository(private val supabase: SupabaseClient) {
+interface AuthRepository {
+    val sessionFlow: Flow<io.github.jan.supabase.auth.user.UserInfo?>
+    val currentSessionUser: io.github.jan.supabase.auth.user.UserInfo?
+    suspend fun signUp(email: String, password: String, fullName: String)
+    suspend fun signIn(email: String, password: String)
+    suspend fun signOut()
+    suspend fun getUserProfile(userId: String): UserProfile
+    suspend fun updateUserProfile(profile: UserProfile): UserProfile
+}
 
-    val sessionFlow: Flow<io.github.jan.supabase.auth.user.UserInfo?> =
+class SupabaseAuthRepository(private val supabase: SupabaseClient) : AuthRepository {
+
+    override val sessionFlow: Flow<io.github.jan.supabase.auth.user.UserInfo?> =
         supabase.auth.sessionStatus.map { status ->
             if (status is io.github.jan.supabase.auth.status.SessionStatus.Authenticated) {
                 status.session.user
             } else null
         }
 
-    val currentSessionUser: io.github.jan.supabase.auth.user.UserInfo?
+    override val currentSessionUser: io.github.jan.supabase.auth.user.UserInfo?
         get() = supabase.auth.currentSessionOrNull()?.user
 
-    suspend fun signUp(email: String, password: String, fullName: String) {
+    override suspend fun signUp(email: String, password: String, fullName: String) {
         supabase.auth.signUpWith(Email) {
             this.email = email
             this.password = password
@@ -32,18 +42,18 @@ class AuthRepository(private val supabase: SupabaseClient) {
         }
     }
 
-    suspend fun signIn(email: String, password: String) {
+    override suspend fun signIn(email: String, password: String) {
         supabase.auth.signInWith(Email) {
             this.email = email
             this.password = password
         }
     }
 
-    suspend fun signOut() {
+    override suspend fun signOut() {
         supabase.auth.signOut()
     }
 
-    suspend fun getUserProfile(userId: String): UserProfile {
+    override suspend fun getUserProfile(userId: String): UserProfile {
         return supabase.postgrest.from("users").select {
             filter {
                 eq("id", userId)
@@ -51,7 +61,7 @@ class AuthRepository(private val supabase: SupabaseClient) {
         }.decodeSingle<UserProfile>()
     }
 
-    suspend fun updateUserProfile(profile: UserProfile): UserProfile {
+    override suspend fun updateUserProfile(profile: UserProfile): UserProfile {
         return supabase.postgrest.from("users").update(profile) {
             filter {
                 eq("id", profile.id)

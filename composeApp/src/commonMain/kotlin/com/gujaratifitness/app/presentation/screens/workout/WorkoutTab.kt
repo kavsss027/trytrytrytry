@@ -161,7 +161,7 @@ object WorkoutTab : Tab {
                             placeholder = "e.g., Lower back pain, shoulder stiffness"
                         )
 
-                        Divider(color = SecondaryColor)
+                        HorizontalDivider(color = SecondaryColor)
 
                         // Equipment Checklist
                         Text("Available Equipment", color = TextPrimaryColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
@@ -198,7 +198,7 @@ object WorkoutTab : Tab {
 
                         // Imbalance correctives checkbox
                         if (state.latestImbalance != null) {
-                            Divider(color = SecondaryColor)
+                            HorizontalDivider(color = SecondaryColor)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
@@ -348,7 +348,7 @@ object WorkoutTab : Tab {
                                         }
                                         
                                         exercise.notes?.let { note ->
-                                            Divider(color = BackgroundColor)
+                                            HorizontalDivider(color = BackgroundColor)
                                             Text(
                                                 text = "Coach tip: $note",
                                                 color = TextSecondaryColor,

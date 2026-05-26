@@ -22,7 +22,7 @@ dependencies {
 }
 
 android {
-    namespace = "com.gujaratifitness.app"
+    namespace = "com.gujaratifitness.app.android"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

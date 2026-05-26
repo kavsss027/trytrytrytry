@@ -57,24 +57,38 @@ data class DietResponse(val plan: DietPlan)
 @Serializable
 data class ImbalanceResponse(val report: MuscleImbalanceReport)
 
-class FitnessRepository(private val supabase: SupabaseClient) {
+interface FitnessRepository {
+    suspend fun generateWorkoutPlan(request: WorkoutRequest): WorkoutPlan
+    suspend fun generateDietPlan(request: DietRequest): DietPlan
+    suspend fun detectMuscleImbalance(request: ImbalanceRequest): MuscleImbalanceReport
+    suspend fun getActiveWorkoutPlan(userId: String): WorkoutPlan?
+    suspend fun getActiveDietPlan(userId: String): DietPlan?
+    suspend fun getLatestImbalanceReport(userId: String): MuscleImbalanceReport?
+    suspend fun getInfluencers(): List<InfluencerProfile>
+    suspend fun getSStierExercises(): List<ExerciseDto>
+    suspend fun getInfluencerJoinRequests(influencerId: String): List<InfluencerJoinRequest>
+    suspend fun submitJoinRequest(influencerId: String, userId: String)
+    suspend fun respondToJoinRequest(requestId: String, status: String)
+}
 
-    suspend fun generateWorkoutPlan(request: WorkoutRequest): WorkoutPlan = withContext(Dispatchers.IO) {
+class SupabaseFitnessRepository(private val supabase: SupabaseClient) : FitnessRepository {
+
+    override suspend fun generateWorkoutPlan(request: WorkoutRequest): WorkoutPlan = withContext(Dispatchers.IO) {
         val response = supabase.functions.invoke("generate-workout-plan", request)
         response.body<WorkoutResponse>().plan
     }
 
-    suspend fun generateDietPlan(request: DietRequest): DietPlan = withContext(Dispatchers.IO) {
+    override suspend fun generateDietPlan(request: DietRequest): DietPlan = withContext(Dispatchers.IO) {
         val response = supabase.functions.invoke("generate-diet-plan", request)
         response.body<DietResponse>().plan
     }
 
-    suspend fun detectMuscleImbalance(request: ImbalanceRequest): MuscleImbalanceReport = withContext(Dispatchers.IO) {
+    override suspend fun detectMuscleImbalance(request: ImbalanceRequest): MuscleImbalanceReport = withContext(Dispatchers.IO) {
         val response = supabase.functions.invoke("detect-muscle-imbalance", request)
         response.body<ImbalanceResponse>().report
     }
 
-    suspend fun getActiveWorkoutPlan(userId: String): WorkoutPlan? = withContext(Dispatchers.IO) {
+    override suspend fun getActiveWorkoutPlan(userId: String): WorkoutPlan? = withContext(Dispatchers.IO) {
         supabase.postgrest.from("workout_plans").select {
             filter {
                 eq("user_id", userId)
@@ -83,7 +97,7 @@ class FitnessRepository(private val supabase: SupabaseClient) {
         }.decodeList<WorkoutPlan>().firstOrNull()
     }
 
-    suspend fun getActiveDietPlan(userId: String): DietPlan? = withContext(Dispatchers.IO) {
+    override suspend fun getActiveDietPlan(userId: String): DietPlan? = withContext(Dispatchers.IO) {
         supabase.postgrest.from("diet_plans").select {
             filter {
                 eq("user_id", userId)
@@ -92,7 +106,7 @@ class FitnessRepository(private val supabase: SupabaseClient) {
         }.decodeList<DietPlan>().firstOrNull()
     }
 
-    suspend fun getLatestImbalanceReport(userId: String): MuscleImbalanceReport? = withContext(Dispatchers.IO) {
+    override suspend fun getLatestImbalanceReport(userId: String): MuscleImbalanceReport? = withContext(Dispatchers.IO) {
         supabase.postgrest.from("muscle_imbalance_reports").select {
             filter {
                 eq("user_id", userId)
@@ -102,7 +116,7 @@ class FitnessRepository(private val supabase: SupabaseClient) {
         }.decodeList<MuscleImbalanceReport>().firstOrNull()
     }
 
-    suspend fun getInfluencers(): List<InfluencerProfile> = withContext(Dispatchers.IO) {
+    override suspend fun getInfluencers(): List<InfluencerProfile> = withContext(Dispatchers.IO) {
         supabase.postgrest.from("influencers").select {
             filter {
                 eq("is_active", true)
@@ -110,7 +124,7 @@ class FitnessRepository(private val supabase: SupabaseClient) {
         }.decodeList<InfluencerProfile>()
     }
 
-    suspend fun getSStierExercises(): List<ExerciseDto> = withContext(Dispatchers.IO) {
+    override suspend fun getSStierExercises(): List<ExerciseDto> = withContext(Dispatchers.IO) {
         supabase.postgrest.from("stier_exercises").select {
             filter {
                 eq("is_active", true)
@@ -118,7 +132,7 @@ class FitnessRepository(private val supabase: SupabaseClient) {
         }.decodeList<ExerciseDto>()
     }
 
-    suspend fun getInfluencerJoinRequests(influencerId: String): List<InfluencerJoinRequest> = withContext(Dispatchers.IO) {
+    override suspend fun getInfluencerJoinRequests(influencerId: String): List<InfluencerJoinRequest> = withContext(Dispatchers.IO) {
         supabase.postgrest.from("influencer_join_requests").select {
             filter {
                 eq("influencer_id", influencerId)
@@ -132,12 +146,11 @@ class FitnessRepository(private val supabase: SupabaseClient) {
         val influencer_id: String
     )
 
-    suspend fun submitJoinRequest(influencerId: String, userId: String): Unit = withContext(Dispatchers.IO) {
+    override suspend fun submitJoinRequest(influencerId: String, userId: String): Unit = withContext(Dispatchers.IO) {
         supabase.postgrest.from("influencer_join_requests").insert(JoinRequestInsert(userId, influencerId))
     }
 
-    suspend fun respondToJoinRequest(requestId: String, status: String): Unit = withContext(Dispatchers.IO) {
-        // Status can be 'approved' or 'rejected'
+    override suspend fun respondToJoinRequest(requestId: String, status: String): Unit = withContext(Dispatchers.IO) {
         val requestMap = mapOf(
             "status" to status,
             "responded_at" to kotlinx.datetime.Clock.System.now().toString()

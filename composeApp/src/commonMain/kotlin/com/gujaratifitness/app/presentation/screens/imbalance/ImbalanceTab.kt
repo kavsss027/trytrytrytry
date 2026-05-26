@@ -148,7 +148,7 @@ object ImbalanceTab : Tab {
                             )
                         }
 
-                        Divider(color = SecondaryColor)
+                        HorizontalDivider(color = SecondaryColor)
 
                         Text(
                             text = "Weekly Frequency per Pattern",
@@ -322,7 +322,7 @@ object ImbalanceTab : Tab {
                                         }
                                     }
                                     Text(text = "Finding: ${item.finding}", color = TextSecondaryColor, fontSize = 13.sp)
-                                    Divider(color = BackgroundColor)
+                                    HorizontalDivider(color = BackgroundColor)
                                     Text(text = "Corrective Plan:", color = PrimaryColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                     Text(text = item.recommendation, color = TextPrimaryColor, fontSize = 13.sp)
                                 }

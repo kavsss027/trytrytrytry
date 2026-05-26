@@ -126,7 +126,7 @@ object ProfileTab : Tab {
                                     Text("Fitness Level", color = TextSecondaryColor)
                                     Text(profile.fitness_level?.uppercase() ?: "NOT SET", color = TextPrimaryColor, fontWeight = FontWeight.Bold)
                                 }
-                                Divider(color = BackgroundColor)
+                                HorizontalDivider(color = BackgroundColor)
                                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                     Text("Generation Limit", color = TextSecondaryColor)
                                     Text(
@@ -135,7 +135,7 @@ object ProfileTab : Tab {
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-                                Divider(color = BackgroundColor)
+                                HorizontalDivider(color = BackgroundColor)
                                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                     Text("Exclusive S-Tier Exercises", color = TextSecondaryColor)
                                     Text(

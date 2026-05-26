@@ -9,13 +9,19 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
-class ExerciseRepository(
+interface ExerciseRepository {
+    suspend fun getLocalExercises(): List<ExerciseDto>
+    suspend fun getLocalExercisesByMuscle(muscleGroup: String): List<ExerciseDto>
+    suspend fun syncExercises()
+}
+
+class SupabaseExerciseRepository(
     private val supabase: SupabaseClient,
     private val database: AppDatabase
-) {
+) : ExerciseRepository {
     private val queries = database.exerciseQueries
 
-    suspend fun getLocalExercises(): List<ExerciseDto> = withContext(Dispatchers.IO) {
+    override suspend fun getLocalExercises(): List<ExerciseDto> = withContext(Dispatchers.IO) {
         queries.getAllExercises().executeAsList().map {
             ExerciseDto(
                 id = it.id,
@@ -28,7 +34,7 @@ class ExerciseRepository(
         }
     }
 
-    suspend fun getLocalExercisesByMuscle(muscleGroup: String): List<ExerciseDto> = withContext(Dispatchers.IO) {
+    override suspend fun getLocalExercisesByMuscle(muscleGroup: String): List<ExerciseDto> = withContext(Dispatchers.IO) {
         queries.getByMuscleGroup(muscleGroup).executeAsList().map {
             ExerciseDto(
                 id = it.id,
@@ -41,7 +47,7 @@ class ExerciseRepository(
         }
     }
 
-    suspend fun syncExercises(): Unit = withContext(Dispatchers.IO) {
+    override suspend fun syncExercises(): Unit = withContext(Dispatchers.IO) {
         val remoteExercises = supabase.postgrest.from("exercises")
             .select {
                 filter {
