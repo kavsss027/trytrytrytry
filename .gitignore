@@ -18,4 +18,9 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 supabase/.env.local
+.env
+.env.*
+*.local
+*.properties
+things.txt
 
