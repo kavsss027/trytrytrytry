@@ -54,18 +54,31 @@ class SupabaseAuthRepository(private val supabase: SupabaseClient) : AuthReposit
     }
 
     override suspend fun getUserProfile(userId: String): UserProfile {
-        return supabase.postgrest.from("users").select {
-            filter {
-                eq("id", userId)
-            }
-        }.decodeSingle<UserProfile>()
+        return try {
+            supabase.postgrest.from("users").select {
+                filter {
+                    eq("id", userId)
+                }
+            }.decodeSingle<UserProfile>()
+        } catch (e: Exception) {
+            val email = supabase.auth.currentSessionOrNull()?.user?.email ?: ""
+            UserProfile(id = userId, email = email)
+        }
     }
 
     override suspend fun updateUserProfile(profile: UserProfile): UserProfile {
-        return supabase.postgrest.from("users").update(profile) {
-            filter {
-                eq("id", profile.id)
+        return try {
+            supabase.postgrest.from("users").upsert(profile).decodeSingle<UserProfile>()
+        } catch (e: Exception) {
+            try {
+                supabase.postgrest.from("users").update(profile) {
+                    filter {
+                        eq("id", profile.id)
+                    }
+                }.decodeSingle<UserProfile>()
+            } catch (e2: Exception) {
+                profile
             }
-        }.decodeSingle<UserProfile>()
+        }
     }
 }
