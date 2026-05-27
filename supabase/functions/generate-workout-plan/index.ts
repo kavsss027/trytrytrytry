@@ -82,12 +82,9 @@ serve(async (req: Request) => {
       .maybeSingle();
 
     const count = usageData?.count ?? 0;
-    let limit = 3;
-    if (userType === "owner") {
-      limit = 999999;
-    } else if (userType === "premium" || userType === "influencer") {
-      limit = 20;
-    }
+    const limit = userType === "owner" ? 999
+      : (userType === "premium" || userType === "influencer") ? 7
+      : 3;
 
     if (count >= limit) {
       return new Response(

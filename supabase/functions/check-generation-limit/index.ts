@@ -80,12 +80,9 @@ serve(async (req: Request) => {
     const count = usageData?.count ?? 0;
 
     // Determine limit based on user type
-    let limit = 3; // default free
-    if (userType === "owner") {
-      limit = 999999; // unlimited
-    } else if (userType === "premium" || userType === "influencer") {
-      limit = 20;
-    }
+    const limit = userType === "owner" ? 999
+      : (userType === "premium" || userType === "influencer") ? 7
+      : 3;
 
     const canGenerate = count < limit;
     const remaining = Math.max(0, limit - count);
