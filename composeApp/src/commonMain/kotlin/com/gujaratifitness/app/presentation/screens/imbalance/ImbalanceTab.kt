@@ -16,11 +16,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.koin.koinScreenModel
+import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.gujaratifitness.app.core.utils.*
 import com.gujaratifitness.app.presentation.components.AppButton
 import com.gujaratifitness.app.presentation.components.AppTextField
+import com.gujaratifitness.app.presentation.screens.workout.WorkoutTab
 
 object ImbalanceTab : Tab {
 
@@ -42,6 +44,14 @@ object ImbalanceTab : Tab {
     override fun Content() {
         val screenModel = koinScreenModel<ImbalanceScreenModel>()
         val state by screenModel.state.collectAsState()
+        val tabNavigator = LocalTabNavigator.current
+
+        LaunchedEffect(state.navigateToWorkout) {
+            if (state.navigateToWorkout) {
+                tabNavigator.current = WorkoutTab
+                screenModel.clearNavigateToWorkout()
+            }
+        }
 
         var showForm by remember { mutableStateOf(false) }
 
@@ -343,6 +353,41 @@ object ImbalanceTab : Tab {
                                             Text(fix, color = TextPrimaryColor, fontSize = 14.sp)
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        // Generate Workout Plan from this imbalance
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = PrimaryContainerColor),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Ready to fix your imbalances?",
+                                    color = TextPrimaryColor,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Generate a personalized workout routine targeting your weak areas.",
+                                    color = TextSecondaryColor,
+                                    fontSize = 13.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Button(
+                                    onClick = { screenModel.onGenerateWorkoutFromImbalance() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
+                                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Generate Workout Plan", color = Color.White, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

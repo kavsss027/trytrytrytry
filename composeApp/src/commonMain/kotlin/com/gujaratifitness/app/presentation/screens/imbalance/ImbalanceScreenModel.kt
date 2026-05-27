@@ -4,8 +4,8 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.gujaratifitness.app.data.model.MuscleImbalanceReport
 import com.gujaratifitness.app.data.repository.AuthRepository
-import com.gujaratifitness.app.data.repository.FitnessRepository
 import com.gujaratifitness.app.data.repository.ImbalanceRequest
+import com.gujaratifitness.app.domain.usecases.DetectMuscleImbalanceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,11 +15,12 @@ import kotlinx.coroutines.launch
 data class ImbalanceState(
     val report: MuscleImbalanceReport? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val navigateToWorkout: Boolean = false
 )
 
 class ImbalanceScreenModel(
-    private val fitnessRepository: FitnessRepository,
+    private val detectImbalanceUseCase: DetectMuscleImbalanceUseCase,
     private val authRepository: AuthRepository
 ) : ScreenModel {
 
@@ -31,16 +32,11 @@ class ImbalanceScreenModel(
     }
 
     fun loadLatestReport() {
-        val user = authRepository.currentSessionUser
-        if (user == null) {
-            _state.update { it.copy(error = "User not logged in") }
-            return
-        }
-
+        val user = authRepository.currentSessionUser ?: return
         screenModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                val report = fitnessRepository.getLatestImbalanceReport(user.id)
+                val report = detectImbalanceUseCase.getLatestReport(user.id)
                 _state.update { it.copy(report = report, isLoading = false) }
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message ?: "Failed to load report", isLoading = false) }
@@ -69,11 +65,20 @@ class ImbalanceScreenModel(
                     training_days_per_week = trainingDays,
                     training_duration_months = experienceMonths
                 )
-                val newReport = fitnessRepository.detectMuscleImbalance(request)
-                _state.update { it.copy(report = newReport, isLoading = false) }
+                val report = detectImbalanceUseCase.execute(request)
+                _state.update { it.copy(report = report, isLoading = false) }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: "Failed to analyze imbalance", isLoading = false) }
+                _state.update { it.copy(error = e.message ?: "Analysis failed", isLoading = false) }
             }
         }
+    }
+
+    /** Called when user taps 'Generate Workout from this imbalance report' */
+    fun onGenerateWorkoutFromImbalance() {
+        _state.update { it.copy(navigateToWorkout = true) }
+    }
+
+    fun clearNavigateToWorkout() {
+        _state.update { it.copy(navigateToWorkout = false) }
     }
 }

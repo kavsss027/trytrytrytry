@@ -5,7 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import com.gujaratifitness.app.data.model.DietPlan
 import com.gujaratifitness.app.data.repository.AuthRepository
 import com.gujaratifitness.app.data.repository.DietRequest
-import com.gujaratifitness.app.data.repository.FitnessRepository
+import com.gujaratifitness.app.domain.usecases.GenerateDietPlanUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,11 +15,12 @@ import kotlinx.coroutines.launch
 data class DietState(
     val activePlan: DietPlan? = null,
     val isLoading: Boolean = false,
+    val limitReached: Boolean = false,
     val error: String? = null
 )
 
 class DietScreenModel(
-    private val fitnessRepository: FitnessRepository,
+    private val generateDietPlanUseCase: GenerateDietPlanUseCase,
     private val authRepository: AuthRepository
 ) : ScreenModel {
 
@@ -40,7 +41,7 @@ class DietScreenModel(
         screenModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                val plan = fitnessRepository.getActiveDietPlan(user.id)
+                val plan = generateDietPlanUseCase.getActivePlan(user.id)
                 _state.update { it.copy(activePlan = plan, isLoading = false) }
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message ?: "Failed to load diet plan", isLoading = false) }
@@ -68,7 +69,7 @@ class DietScreenModel(
         }
 
         screenModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _state.update { it.copy(isLoading = true, error = null, limitReached = false) }
             try {
                 val request = DietRequest(
                     fitness_level = fitnessLevel,
@@ -83,10 +84,15 @@ class DietScreenModel(
                     meals_per_day = mealsPerDay,
                     gujarati_food_preference = gujaratiPreference
                 )
-                val newPlan = fitnessRepository.generateDietPlan(request)
+                val newPlan = generateDietPlanUseCase.execute(request)
                 _state.update { it.copy(activePlan = newPlan, isLoading = false) }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: "Failed to generate diet plan", isLoading = false) }
+                val errorMsg = e.message ?: "Failed to generate diet plan"
+                if (errorMsg.contains("limit", ignoreCase = true) || errorMsg.contains("429")) {
+                    _state.update { it.copy(limitReached = true, isLoading = false) }
+                } else {
+                    _state.update { it.copy(error = errorMsg, isLoading = false) }
+                }
             }
         }
     }

@@ -5,7 +5,8 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import com.gujaratifitness.app.data.model.InfluencerJoinRequest
 import com.gujaratifitness.app.data.model.UserProfile
 import com.gujaratifitness.app.data.repository.AuthRepository
-import com.gujaratifitness.app.data.repository.FitnessRepository
+import com.gujaratifitness.app.domain.usecases.ManageInfluencerGroupUseCase
+import com.gujaratifitness.app.domain.usecases.GetSTierExercisesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +22,8 @@ data class ProfileState(
 
 class ProfileScreenModel(
     private val authRepository: AuthRepository,
-    private val fitnessRepository: FitnessRepository
+    private val influencerUseCase: ManageInfluencerGroupUseCase,
+    private val sTierUseCase: GetSTierExercisesUseCase
 ) : ScreenModel {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -43,8 +45,8 @@ class ProfileScreenModel(
             try {
                 val userProfile = authRepository.getUserProfile(user.id)
                 _state.update { it.copy(profile = userProfile, isLoading = false) }
-                
-                if (userProfile.user_type == "influencer") {
+
+                if (userProfile.user_type == "influencer" || userProfile.user_type == "owner") {
                     loadJoinRequests(user.id)
                 }
             } catch (e: Exception) {
@@ -56,15 +58,32 @@ class ProfileScreenModel(
     private fun loadJoinRequests(influencerUserId: String) {
         screenModelScope.launch {
             try {
-                // To get join requests, we first get the influencer record matching user_id
-                val influencers = fitnessRepository.getInfluencers()
+                val influencers = influencerUseCase.getInfluencers()
                 val activeInfluencer = influencers.firstOrNull { it.user_id == influencerUserId }
                 if (activeInfluencer != null) {
-                    val requests = fitnessRepository.getInfluencerJoinRequests(activeInfluencer.id)
+                    val requests = influencerUseCase.getJoinRequests(activeInfluencer.id)
                     _state.update { it.copy(joinRequests = requests) }
                 }
+            } catch (_: Exception) {
+                // Non-critical — don't show error for this
+            }
+        }
+    }
+
+    fun respondToJoinRequest(requestId: String, approve: Boolean) {
+        screenModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            try {
+                if (approve) {
+                    influencerUseCase.approveRequest(requestId)
+                } else {
+                    influencerUseCase.rejectRequest(requestId)
+                }
+                val user = authRepository.currentSessionUser
+                if (user != null) loadJoinRequests(user.id)
+                _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                // Silent catch or add warning
+                _state.update { it.copy(error = e.message ?: "Failed to respond to request", isLoading = false) }
             }
         }
     }
@@ -79,24 +98,7 @@ class ProfileScreenModel(
                 )
                 _state.update { it.copy(profile = updatedProfile, isLoading = false) }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: "Failed to update subscription status", isLoading = false) }
-            }
-        }
-    }
-
-    fun respondToJoinRequest(requestId: String, approve: Boolean) {
-        screenModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            try {
-                val status = if (approve) "approved" else "rejected"
-                fitnessRepository.respondToJoinRequest(requestId, status)
-                val user = authRepository.currentSessionUser
-                if (user != null) {
-                    loadJoinRequests(user.id)
-                }
-                _state.update { it.copy(isLoading = false) }
-            } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: "Failed to respond to request", isLoading = false) }
+                _state.update { it.copy(error = e.message ?: "Failed to update status", isLoading = false) }
             }
         }
     }

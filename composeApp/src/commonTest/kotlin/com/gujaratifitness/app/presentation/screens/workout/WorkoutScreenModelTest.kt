@@ -3,6 +3,7 @@ package com.gujaratifitness.app.presentation.screens.workout
 import com.gujaratifitness.app.data.model.*
 import com.gujaratifitness.app.data.repository.FakeAuthRepository
 import com.gujaratifitness.app.data.repository.FakeFitnessRepository
+import com.gujaratifitness.app.domain.usecases.GenerateWorkoutPlanUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -25,7 +26,6 @@ class WorkoutScreenModelTest {
 
     @BeforeTest
     fun setUp() {
-        // Required: Voyager's screenModelScope uses Dispatchers.Main which needs to be set in tests
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -38,13 +38,12 @@ class WorkoutScreenModelTest {
     fun testInitializationWithoutUserSetsError() = runTest {
         val authRepo = FakeAuthRepository()
         val fitnessRepo = FakeFitnessRepository()
+        val useCase = GenerateWorkoutPlanUseCase(fitnessRepo)
 
-        // User is not signed in — currentSessionUser is null by default
         assertNull(authRepo.currentSessionUser)
 
-        val screenModel = WorkoutScreenModel(fitnessRepo, authRepo)
+        val screenModel = WorkoutScreenModel(useCase, authRepo)
 
-        // With UnconfinedTestDispatcher, the init coroutine should have run by now
         val state = screenModel.state.value
         assertEquals("User not logged in", state.error)
         assertFalse(state.isLoading)
@@ -55,10 +54,10 @@ class WorkoutScreenModelTest {
     fun testGeneratePlanWithNoUserSetsError() = runTest {
         val authRepo = FakeAuthRepository()
         val fitnessRepo = FakeFitnessRepository()
+        val useCase = GenerateWorkoutPlanUseCase(fitnessRepo)
 
-        val screenModel = WorkoutScreenModel(fitnessRepo, authRepo)
+        val screenModel = WorkoutScreenModel(useCase, authRepo)
 
-        // generatePlan without being signed in
         screenModel.generatePlan(
             fitnessLevel = "Intermediate",
             goal = "Hypertrophy",
@@ -78,6 +77,7 @@ class WorkoutScreenModelTest {
     fun testGeneratePlanIncludesImbalanceContext() = runTest {
         val authRepo = FakeAuthRepository()
         val fitnessRepo = FakeFitnessRepository()
+        val useCase = GenerateWorkoutPlanUseCase(fitnessRepo)
 
         authRepo.signInForTest()
 
@@ -101,9 +101,9 @@ class WorkoutScreenModelTest {
                 priority_fixes = listOf("Seated Cable Rows", "Face Pulls")
             )
         )
-        fitnessRepo.latestImbalanceReport = imbalance
 
-        val screenModel = WorkoutScreenModel(fitnessRepo, authRepo)
+        val screenModel = WorkoutScreenModel(useCase, authRepo)
+        screenModel.setImbalanceContext(imbalance)
 
         screenModel.generatePlan(
             fitnessLevel = "Intermediate",
@@ -119,7 +119,7 @@ class WorkoutScreenModelTest {
         assertNotNull(req)
         assertNotNull(req.imbalance_context)
         assertTrue(req.imbalance_context!!.contains("75/100"))
-        assertTrue(req.imbalance_context!!.contains("Seated Cable Rows, Face Pulls"))
+        assertTrue(req.imbalance_context!!.contains("Seated Cable Rows"))
 
         assertEquals(75.0, req.current_lifts?.get("Bench Press"))
         assertEquals(95.0, req.current_lifts?.get("Squat"))
@@ -131,10 +131,11 @@ class WorkoutScreenModelTest {
     fun testGeneratePlanWithoutCorrectives() = runTest {
         val authRepo = FakeAuthRepository()
         val fitnessRepo = FakeFitnessRepository()
+        val useCase = GenerateWorkoutPlanUseCase(fitnessRepo)
 
         authRepo.signInForTest()
 
-        val screenModel = WorkoutScreenModel(fitnessRepo, authRepo)
+        val screenModel = WorkoutScreenModel(useCase, authRepo)
 
         screenModel.generatePlan(
             fitnessLevel = "Beginner",

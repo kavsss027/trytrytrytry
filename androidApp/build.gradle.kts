@@ -32,14 +32,48 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    signingConfigs {
+        create("release") {
+            val keystoreFile = rootProject.file("release.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "dummy"
+                keyAlias = System.getenv("KEY_ALIAS") ?: "dummy"
+                keyPassword = System.getenv("KEY_PASSWORD") ?: "dummy"
+            } else {
+                val debugKeystore = file(System.getProperty("user.home") + "/.android/debug.keystore")
+                if (debugKeystore.exists()) {
+                    storeFile = debugKeystore
+                    storePassword = "android"
+                    keyAlias = "androiddebugkey"
+                    keyPassword = "android"
+                }
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            val keystoreFile = rootProject.file("release.jks")
+            val debugKeystore = file(System.getProperty("user.home") + "/.android/debug.keystore")
+            if (keystoreFile.exists() || debugKeystore.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {

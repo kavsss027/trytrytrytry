@@ -12,6 +12,9 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,7 @@ object ExerciseLibraryTab : Tab {
     override val options: TabOptions
         @Composable
         get() {
+            @Suppress("DEPRECATION")
             val icon = rememberVectorPainter(Icons.Default.List)
             return remember {
                 TabOptions(
@@ -61,7 +65,7 @@ object ExerciseLibraryTab : Tab {
                 TopAppBar(
                     title = { Text("Exercise Library", fontWeight = FontWeight.Bold, color = TextPrimaryColor) },
                     actions = {
-                        IconButton(onClick = { screenModel.forceSync() }) {
+                        IconButton(onClick = { screenModel.refresh() }) {
                             Icon(Icons.Default.Refresh, contentDescription = "Sync", tint = PrimaryColor)
                         }
                     },
@@ -132,56 +136,71 @@ object ExerciseLibraryTab : Tab {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = PrimaryColor)
                     }
-                } else if (state.exercises.isEmpty()) {
-                    EmptyState(
-                        title = "No Exercises Found",
-                        description = "Sync with remote database or adjust search query."
-                    )
                 } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    PullToRefreshBox(
+                        isRefreshing = state.isSyncing,
+                        onRefresh = { screenModel.refresh(selectedCategory) },
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(state.exercises) { exercise ->
-                            Card(
+                        if (state.exercises.isEmpty()) {
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { selectedExercise = exercise },
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = SurfaceColor)
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState()),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = exercise.name,
-                                            color = TextPrimaryColor,
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = exercise.muscle_group.uppercase(),
-                                            color = PrimaryColor,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                    }
-                                    
-                                    Badge(
-                                        containerColor = SecondaryColor,
-                                        contentColor = TextSecondaryColor,
-                                        modifier = Modifier.padding(start = 8.dp)
+                                EmptyState(
+                                    title = "No Exercises Found",
+                                    description = "Swipe down to sync with remote database or adjust search query."
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(state.exercises) { exercise ->
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { selectedExercise = exercise },
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(containerColor = SurfaceColor)
                                     ) {
-                                        Text(
-                                            text = exercise.difficulty.uppercase(),
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                            fontSize = 10.sp
-                                        )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = exercise.name,
+                                                    color = TextPrimaryColor,
+                                                    fontSize = 18.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = exercise.muscle_group.uppercase(),
+                                                    color = PrimaryColor,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.SemiBold
+                                                )
+                                            }
+                                            
+                                            Badge(
+                                                containerColor = SecondaryColor,
+                                                contentColor = TextSecondaryColor,
+                                                modifier = Modifier.padding(start = 8.dp)
+                                            ) {
+                                                Text(
+                                                    text = exercise.difficulty.uppercase(),
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                    fontSize = 10.sp
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
