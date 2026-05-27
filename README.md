@@ -4,11 +4,10 @@
 
 ### AI-powered fitness app built for Indian Gujarati gym-goers
 
-![Kotlin](https://img.shields.io/badge/Kotlin-2.3.21-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
-![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-1.11.0-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3.1.4-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Gemini AI](https://img.shields.io/badge/Gemini_AI-3.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
+![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-API_26+-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 <!-- Add screenshots here -->
 
@@ -67,69 +66,6 @@ What makes CoolFit different is the depth of personalisation. The workout genera
 
 ---
 
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Language | Kotlin 2.3.21 |
-| UI Framework | Compose Multiplatform 1.11.0 |
-| Navigation | Voyager 1.1.0-beta03 |
-| Networking | Ktor Client 3.4.3 |
-| Local Database | SQLDelight 2.1.0 |
-| Dependency Injection | Koin 4.1.0 |
-| Image + GIF Loading | Coil 3.0.4 |
-| Backend | Supabase (PostgreSQL + Auth + Storage + Edge Functions) |
-| AI — Development | Gemini 3.5 Flash |
-| AI — Production | Claude claude-sonnet-4-20250514 |
-| Target Platform | Android (iOS architecture ready) |
-| Min Android SDK | API 26 (Android 8.0) |
-
----
-
-## 🏗 Architecture
-
-CoolFit follows Clean Architecture with three strict layers:
-
-```
-Presentation Layer  →  Screens + ScreenModels (Compose UI)
-        ↓
-Domain Layer        →  UseCases (Business Logic Only)
-        ↓
-Data Layer          →  Repositories → Remote (Supabase) + Local (SQLDelight)
-        ↓
-Backend             →  Supabase Edge Functions → Gemini / Claude AI
-```
-
-### Project Structure
-
-```
-composeApp/
-  src/
-    commonMain/    ← Shared UI and logic (Android + iOS)
-    androidMain/   ← Android-specific implementations (drivers, GIF)
-    iosMain/       ← iOS-specific implementations (drivers, GIF)
-
-androidApp/        ← Android entry point
-iosApp/            ← iOS entry point (Xcode — requires Mac)
-
-supabase/
-  functions/       ← Edge Functions (TypeScript / Deno)
-    check-generation-limit/
-    generate-workout-plan/
-    generate-diet-plan/
-    detect-muscle-imbalance/
-
-.docs/             ← Full project documentation
-  MASTER_CONTEXT.md
-  foundation/
-  contracts/
-  features/
-  agent/
-  guides/
-```
-
----
-
 ## 👤 User Types
 
 | User Type | Access |
@@ -141,85 +77,30 @@ supabase/
 
 ---
 
-## 🚀 Getting Started
+## 🛠 Tech Stack
 
-### Prerequisites
-
-- Android Studio Panda 4 (2025.3.4) or newer
-- Kotlin 2.3.21+
-- Node.js 22.x LTS
-- Supabase CLI 2.x
-- Deno 2.x
-- Antigravity CLI (latest)
-
-### Setup
-
-**1. Clone the repository**
-```bash
-git clone https://github.com/kavsss027/FitnessApp.git
-cd FitnessApp
-```
-
-**2. Create `local.properties` at project root**
-```properties
-sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-**3. Create `supabase/.env.local`**
-```env
-GEMINI_API_KEY=your_gemini_api_key
-```
-
-**4. Link Supabase CLI**
-```bash
-supabase login
-supabase link --project-ref your_project_ref
-```
-
-**5. Open in Android Studio**
-- File → Open → select project folder
-- Wait for Gradle sync to complete
-
-**6. Run on Android emulator**
-- Tools → Device Manager → Create Virtual Device (Pixel 8, API 35+)
-- Click the green ▶ play button
-
-> 📄 See `.docs/foundation/LOCAL_SETUP.md` for the complete detailed setup guide.
+| Layer | Technology |
+|-------|-----------|
+| Language | Kotlin Multiplatform |
+| UI Framework | Compose Multiplatform |
+| Navigation | Voyager |
+| Networking | Ktor Client |
+| Local Database | SQLDelight |
+| Dependency Injection | Koin |
+| Backend | Supabase |
+| Target Platform | Android (iOS architecture ready) |
+| Min Android SDK | API 26 (Android 8.0) |
 
 ---
 
-## 🔐 Environment Variables
+## 🗄 Database
 
-### `local.properties` *(app secrets — never commit)*
-```properties
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_anon_key_here
-```
-
-### `supabase/.env.local` *(backend secrets — never commit)*
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### Supabase Dashboard → Edge Functions → Secrets *(production)*
-```
-GEMINI_API_KEY   your production AI key
-```
-
-> ⚠️ Both `local.properties` and `supabase/.env.local` are gitignored. Never commit secrets to version control.
-
----
-
-## 🗄 Database Schema
-
-All tables use PostgreSQL via Supabase with Row Level Security (RLS) enabled.
+All tables use PostgreSQL via Supabase with Row Level Security (RLS) enabled on every table.
 
 | Table | Purpose |
 |-------|---------|
-| `users` | User profiles, type (free/premium/influencer/owner), fitness level |
-| `exercises` | Exercise library with GIF URLs and muscle group |
+| `users` | User profiles and permission types |
+| `exercises` | Exercise library with GIF demonstrations |
 | `stier_exercises` | S-TIER curated exercises — global and per-influencer |
 | `influencers` | Influencer profiles and slot management |
 | `influencer_join_requests` | User requests to join influencer groups |
@@ -227,19 +108,6 @@ All tables use PostgreSQL via Supabase with Row Level Security (RLS) enabled.
 | `diet_plans` | AI-generated diet plans per user |
 | `muscle_imbalance_reports` | Imbalance analysis results per user |
 | `generation_usage` | Monthly AI generation count per user per feature |
-
----
-
-## ⚡ Backend Edge Functions
-
-All AI calls are made server-side only — API keys never touch the app.
-
-| Function | Purpose |
-|----------|---------|
-| `check-generation-limit` | Enforces monthly AI generation limits per user type |
-| `generate-workout-plan` | AI-powered personalised workout plan generation |
-| `generate-diet-plan` | AI-powered diet plan with Gujarati food support |
-| `detect-muscle-imbalance` | Analyses lift maxes and returns balance report |
 
 ---
 
@@ -257,7 +125,6 @@ All AI calls are made server-side only — API keys never touch the app.
 - [ ] In-app payment processing
 - [ ] Social features and community feed
 - [ ] Video demonstrations
-- [ ] Training session logs
 
 ---
 
@@ -267,9 +134,8 @@ Contributions are welcome.
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Follow the coding standards in `.docs/foundation/CODING_STANDARDS.md`
-4. Commit with a clear message following the project convention
-5. Submit a pull request
+3. Commit with a clear message
+4. Submit a pull request
 
 ---
 
